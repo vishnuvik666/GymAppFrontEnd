@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import Calendar from './Calendar';
 import { Trash } from 'lucide-react-native';
 import {
@@ -8,6 +14,7 @@ import {
 } from '../api/availability.api';
 import CustomAlert from './CustomAlert';
 import CustomToast from './CustomToast';
+import { useAvailabilityStore } from '../store/useAvailabilityStore';
 
 type Slot = {
   id: number;
@@ -16,6 +23,9 @@ type Slot = {
 };
 
 export default function ClientTab() {
+  const pendingAvailabilities = useAvailabilityStore(
+    state => state.pendingAvailabilities,
+  );
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [availabilities, setAvailabilities] = useState<any[]>([]);
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -46,8 +56,9 @@ export default function ClientTab() {
     }
 
     const formattedDate = selectedDate.toISOString().split('T')[0];
+    const combined = [...availabilities, ...pendingAvailabilities];
 
-    const slotsForDate = availabilities
+    const slotsForDate = combined
       .filter(a => {
         if (a.repeatSessions && a.rangeStart && a.rangeEnd) {
           return formattedDate >= a.rangeStart && formattedDate <= a.rangeEnd;
@@ -61,7 +72,7 @@ export default function ClientTab() {
       }));
 
     setSlots(slotsForDate);
-  }, [selectedDate, availabilities]);
+  }, [selectedDate, availabilities, pendingAvailabilities]);
 
   const handleDeleteSlot = (id: number) => {
     console.log('id', id);
@@ -114,7 +125,11 @@ export default function ClientTab() {
         </View>
 
         <TouchableOpacity onPress={() => handleDeleteSlot(slot.id)}>
-          <Trash size={22} color="#e74c3c" />
+          {deleteId ? (
+            <ActivityIndicator color={'#e74c3c'} />
+          ) : (
+            <Trash size={22} color="#e74c3c" />
+          )}
         </TouchableOpacity>
       </View>
     ));
@@ -124,7 +139,7 @@ export default function ClientTab() {
     <View style={styles.container}>
       <Text style={styles.title}>Book Client Slots</Text>
       <Text style={styles.subtitle}>
-        Rahul Verma has 20 sessions left to book by 24 June 2026
+        User has some sessions left to book by 24 June 2026
       </Text>
 
       <Calendar selectedDate={selectedDate} onDateSelect={setSelectedDate} />

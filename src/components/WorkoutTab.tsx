@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import {
   createWorkoutPlan,
@@ -52,6 +53,8 @@ export default function WorkoutTab({
     { id: 1, muscle: '', exercises: [] },
   ]);
   const [toast, setToast] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -170,6 +173,7 @@ export default function WorkoutTab({
 
   const submitWorkout = async () => {
     if (!validateWorkout()) return;
+    setIsSubmitting(true);
     const payload = {
       name: workoutName,
       description,
@@ -211,10 +215,12 @@ export default function WorkoutTab({
       setWorkoutName('');
       setDescription('');
       setDays([{ id: 1, muscle: '', exercises: [] }]);
+      setIsSubmitting(false);
     }
   };
 
   const deleteWorkout = async (id: number) => {
+    setDeletingId(id);
     try {
       await deleteWorkoutPlan(id);
 
@@ -231,6 +237,8 @@ export default function WorkoutTab({
       setWorkouts(prev => prev.filter(w => w.id !== id));
 
       showToast('Deleted locally (offline)');
+    } finally {
+      setDeletingId(null); // stop loader
     }
   };
 
@@ -345,7 +353,12 @@ export default function WorkoutTab({
         />
 
         <TouchableOpacity style={styles.submitButton} onPress={submitWorkout}>
-          <Text style={styles.submitButtonText}>Submit</Text>
+          {/* <Text style={styles.submitButtonText}>Submit</Text> */}
+          {isSubmitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.submitButtonText}>Submit</Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.cancelButton}
@@ -373,8 +386,15 @@ export default function WorkoutTab({
       {workouts.map(workout => (
         <View key={workout.id} style={styles.workoutItem}>
           <Text style={styles.workoutItemText}>{workout.name}</Text>
-          <TouchableOpacity onPress={() => deleteWorkout(workout.id)}>
-            <Trash size={22} color="#e74c3c" />
+          <TouchableOpacity
+            onPress={() => deleteWorkout(workout.id)}
+            disabled={deletingId === workout.id}
+          >
+            {deletingId === workout.id ? (
+              <ActivityIndicator size="small" color="#e74c3c" />
+            ) : (
+              <Trash size={22} color="#e74c3c" />
+            )}
           </TouchableOpacity>
         </View>
       ))}

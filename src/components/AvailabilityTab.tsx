@@ -7,12 +7,14 @@ import {
   Switch,
   StyleSheet,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Calendar from './Calendar';
 import { CalendarCheck } from 'lucide-react-native';
 import RangeCalendar from './RangeCalendar';
 import { createAvailability } from '../api/availability.api';
+import { useAvailabilityStore } from '../store/useAvailabilityStore';
 
 export default function AvailabilityTab() {
   const [firstDate, setFirstDate] = useState(new Date());
@@ -26,6 +28,8 @@ export default function AvailabilityTab() {
   const [repeatSessions, setRepeatSessions] = useState(false);
   const [rangeDates, setRangeDates] = useState({ start: null, end: null });
   const [sessionName, setSessionName] = useState('PT');
+  const [loading, setLoading] = useState(false);
+  const addPending = useAvailabilityStore(state => state.addPending);
   const [toast, setToast] = useState('');
 
   const showToast = (msg: string) => {
@@ -167,6 +171,8 @@ export default function AvailabilityTab() {
           : null,
     };
 
+    setLoading(true);
+
     try {
       const result = await createAvailability(payload);
       console.log('Availability saved:', result);
@@ -179,6 +185,10 @@ export default function AvailabilityTab() {
       setSessionName('PT');
     } catch (err) {
       console.error('Error creating availability:', err);
+      showToast('Failed to create availability. Saving Locally.');
+      addPending(payload);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -272,7 +282,11 @@ export default function AvailabilityTab() {
       </View>
 
       <TouchableOpacity style={styles.createButton} onPress={handleCreate}>
-        <Text style={styles.createButtonText}>Create</Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.createButtonText}>Create</Text>
+        )}
       </TouchableOpacity>
       {toast ? (
         <View style={styles.toast}>
