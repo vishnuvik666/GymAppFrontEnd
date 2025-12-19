@@ -1,45 +1,43 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+// import { StatusBar, StyleSheet } from 'react-native';
+// import WorkoutManagementScreen from './src/screens/WorkoutManagementScreen';
+// import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+// export default function App() {
+//   return (
+//     <SafeAreaView style={styles.container}>
+//       <StatusBar barStyle="light-content" backgroundColor="#28A745" />
+//       <WorkoutManagementScreen />
+//     </SafeAreaView>
+//   );
+// }
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     backgroundColor: '#f5f5f5',
+//   },
+// });
+
+import { StatusBar, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import WorkoutManagementScreen from './src/screens/WorkoutManagementScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import { useAuthStore } from './src/store/useAuthStore';
+
+export default function App() {
+  const isLoggedIn = useAuthStore(state => state.isLoggedIn);
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
-  );
-}
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#28A745" />
+      {isLoggedIn ? <WorkoutManagementScreen /> : <LoginScreen />}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
   },
 });
-
-export default App;
