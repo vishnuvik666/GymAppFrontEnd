@@ -1,4 +1,4 @@
-const BASE_URL = 'http://10.100.46.248:3000/api'; // Replace with your backend URL
+const BASE_URL = 'http://10.100.46.248:3000/api';
 
 export const createAvailability = async (payload: any) => {
   try {
